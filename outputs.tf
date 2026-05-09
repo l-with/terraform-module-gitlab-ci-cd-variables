@@ -1,7 +1,7 @@
 output "ci_cd_vars" {
   description = "map of all CI/CD-variables with original names with as keys"
-  value = data.external.ci_cd_vars.result
-  sensitive = true
+  value       = data.external.ci_cd_vars.result
+  sensitive   = true
 }
 
 output "keys" {
