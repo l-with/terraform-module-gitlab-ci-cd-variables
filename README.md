@@ -13,7 +13,7 @@ and `CHAT_` and returns them as a flat JSON object. Terraform turns this
 into a map that can be used directly in the calling module.
 
 ```
-GitLab Runner (env vars)
+GitLab Runner (CI/CD variables)
         │
         ▼
 data "external" (python3)
@@ -22,102 +22,43 @@ data "external" (python3)
 output "env"  →  module.ci_vars.env["CI_PROJECT_ID"]
 ```
 
+## Terraform
+<!-- BEGIN_TF_DOCS -->
 ## Requirements
 
-- Terraform runs **inside a GitLab CI/CD pipeline** (Runner)
-- `python3` available on the Runner (standard for most images)
-- Terraform ≥ 1.0, provider `hashicorp/external ~> 2.0`
+| Name | Version |
+| ---- | ------- |
+| <a name="requirement_external"></a> [external](#requirement\_external) | ~> 2.0 |
 
-## Usage
+## Providers
 
-```hcl
-module "ci_vars" {
-  source = "./modules/gitlab_ci_vars"
-}
+| Name | Version |
+| ---- | ------- |
+| <a name="provider_external"></a> [external](#provider\_external) | 2.3.5 |
 
-locals {
-  project_id = module.ci_vars.env["CI_PROJECT_ID"]
-  commit_sha = module.ci_vars.env["CI_COMMIT_SHA"]
-}
-```
+## Modules
 
-With optional parameters:
+No modules.
 
-```hcl
-module "ci_vars" {
-  source = "./modules/gitlab_ci_vars"
+## Resources
 
-  exclude = [
-    "CI_JOB_TOKEN",
-    "CI_REGISTRY_PASSWORD",
-    "CI_DEPLOY_PASSWORD",
-    "CI_REPOSITORY_URL",
-  ]
-
-  extra_prefixes = ["MY_CUSTOM_"]
-}
-```
+| Name | Type |
+| ---- | ---- |
+| [external_external.ci_cd_vars](https://registry.terraform.io/providers/hashicorp/external/latest/docs/data-sources/external) | data source |
 
 ## Inputs
 
-| Name             | Type           | Default | Description                                        |
-|------------------|----------------|---------|----------------------------------------------------|
-| `exclude`        | `set(string)`  | `[]`    | Variable names to exclude from the output          |
-| `extra_prefixes` | `list(string)` | `[]`    | Additional prefixes to include                     |
+| Name | Description | Type | Default | Required |
+| ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_allow"></a> [allow](#input\_allow) | GitLab CI/CD-variables | `any` | n/a | yes |
+| <a name="input_exclude"></a> [exclude](#input\_exclude) | GitLab CI/CD-variables to be excluded, for instance contaning secrets (CI\_JOB\_TOKEN, CI\_REGISTRY\_PASSWORD, CI\_DEPLOY\_PASSWORD, CI\_REPOSITORY\_URL) | `set(string)` | `[]` | no |
+| <a name="input_extra_prefixes"></a> [extra\_prefixes](#input\_extra\_prefixes) | additional prefixes of environment variable to be included | `list(string)` | `[]` | no |
 
 ## Outputs
 
-| Name    | Type           | Description                                              |
-|---------|----------------|----------------------------------------------------------|
-| `env`   | `map(string)`  | All collected variables, key = original variable name    |
-| `keys`  | `list(string)` | Sorted list of all available keys                        |
-| `count` | `number`       | Number of collected variables                            |
-
-## Access Patterns
-
-```hcl
-# Direct — when the variable is guaranteed to exist
-module.ci_vars.env["CI_PROJECT_ID"]
-
-# With fallback — when the variable is optional
-lookup(module.ci_vars.env, "CI_ENVIRONMENT_NAME", "unknown")
-```
-
-## Notes
-
-### Exclude Short-Lived Variables
-
-Some predefined variables are job-specific and change with every run.
-They should generally **not** be reused or persisted:
-
-| Variable               | Reason                                      |
-|------------------------|---------------------------------------------|
-| `CI_JOB_TOKEN`         | Expires when the job ends                   |
-| `CI_REGISTRY_PASSWORD` | Identical to `CI_JOB_TOKEN`                 |
-| `CI_DEPLOY_PASSWORD`   | Short-lived deploy token                    |
-| `CI_REPOSITORY_URL`    | Contains a token embedded in the URL        |
-
-### Included Prefixes (Default)
-
-| Prefix    | Examples                                             |
-|-----------|------------------------------------------------------|
-| `CI_`     | `CI_PROJECT_ID`, `CI_COMMIT_SHA`, `CI_PIPELINE_ID`  |
-| `GITLAB_` | `GITLAB_USER_LOGIN`, `GITLAB_USER_EMAIL`             |
-| `CHAT_`   | `CHAT_CHANNEL`, `CHAT_INPUT` (ChatOps pipelines)    |
-
-### Multi-Line Values
-
-Variables with newlines in their value are automatically excluded because
-the `external` data source only handles flat JSON. For such values
-(e.g. SSH keys, certificates) use direct environment variable access
-via `var` or `local-exec` instead.
-
-## File Structure
-
-```
-modules/
-  gitlab_ci_vars/
-    main.tf       # external data source + input variables
-    outputs.tf    # env, keys, count
-    README.md     # this file
-```
+| Name | Description |
+| ---- | ----------- |
+| <a name="output_ci_cd_vars"></a> [ci\_cd\_vars](#output\_ci\_cd\_vars) | map of all CI/CD-variables with original names with as keys |
+| <a name="output_count"></a> [count](#output\_count) | number of variables |
+| <a name="output_keys"></a> [keys](#output\_keys) | sorted list of all keys |
+<!-- END_TF_DOCS -->
